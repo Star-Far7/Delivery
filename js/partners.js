@@ -1,24 +1,26 @@
-const cardsRestaurants = document.querySelector(".cards-restaurants");
+const partners = () => {
+  const cardsRestaurants = document.querySelector(".cards-restaurants");
+  const modalAuth = document.querySelector(".modal-auth");
 
-/**
- * Функция отрисовывает данные плученые сервером,
- * и навешивает на них обработчик события на страницу ресторана.
- * Если пользователь не вошел в аккаунт, то запретить переход на страницу ресторана
- * и открыть модальное окно регистрации
- */
-const renderItems = (data) => {
-  data.forEach((item) => {
-    const { image, kitchen, name, price, products, stars, time_of_delivery } =
-      item;
-    const a = document.createElement("a");
+  /**
+   * Функция отрисовывает данные плученые сервером,
+   * и навешивает на них обработчик события на страницу ресторана.
+   * Если пользователь не вошел в аккаунт, то запретить переход на страницу ресторана
+   * и открыть модальное окно регистрации
+   */
+  const renderItems = (data) => {
+    data.forEach((item) => {
+      const { image, kitchen, name, price, products, stars, time_of_delivery } =
+        item;
+      const a = document.createElement("a");
 
-    a.setAttribute("href", "/restaurant.html");
-    a.classList.add("card");
-    a.classList.add("card-restaurant");
+      a.setAttribute("href", "/restaurant.html");
+      a.classList.add("card");
+      a.classList.add("card-restaurant");
 
-    a.dataset.products = products;
+      a.dataset.products = products;
 
-    a.innerHTML = `
+      a.innerHTML = `
 							<img
                 src="${image}"
                 alt="${name}"
@@ -36,29 +38,31 @@ const renderItems = (data) => {
                 </div>
               </div>`;
 
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      const link = a.dataset.products;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const link = a.dataset.products;
 
-      localStorage.setItem("restaurant", JSON.stringify(item));
+        localStorage.setItem("restaurant", JSON.stringify(item));
 
-      if (localStorage.getItem("user")) {
-        window.location.href = "/restaurant.html";
-      } else {
-        modalAuth.style.display = "flex";
-      }
+        if (localStorage.getItem("user")) {
+          window.location.href = "/restaurant.html";
+        } else {
+          modalAuth.style.display = "flex";
+        }
+      });
+
+      cardsRestaurants.append(a);
     });
+  };
 
-    cardsRestaurants.append(a);
-  });
+  /**
+   * Получаем данные и запускаем их отрисовку
+   */
+  fetch("https://delivery-ed8e8-default-rtdb.firebaseio.com/db/partners.json")
+    .then((response) => response.json())
+    .then((data) => renderItems(data))
+    .catch((error) => {
+      console.log(error);
+    });
 };
-
-/**
- * Получаем данные и запускаем их отрисовку
- */
-fetch("https://delivery-ed8e8-default-rtdb.firebaseio.com/db/partners.json")
-  .then((response) => response.json())
-  .then((data) => renderItems(data))
-  .catch((error) => {
-    console.log(error);
-  });
+partners();

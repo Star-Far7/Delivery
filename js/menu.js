@@ -1,31 +1,52 @@
-const cardsMenu = document.querySelector(".cards-menu");
+const menu = () => {
+  const cardsMenu = document.querySelector(".cards-menu");
 
-/**
- * Функция с помощью Деструктуризации заполняет заголовок секции
- */
-const changeTitle = ({ kitchen, name, price, stars }) => {
-  const restaurantTitle = document.querySelector(".restaurant-title");
-  const restaurantRating = document.querySelector(".rating");
-  const restaurantPrice = document.querySelector(".price");
-  const restaurantCategory = document.querySelector(".category");
+  const cartArray = localStorage.getItem("cart")
+    ? JSON.parse(localStorage.getItem("cart"))
+    : [];
 
-  restaurantTitle.textContent = name;
-  restaurantRating.textContent = stars;
-  restaurantPrice.innerHTML = `От ${price} ₽`;
-  restaurantCategory.textContent = kitchen;
-};
+  /**
+   * Функция с помощью Деструктуризации заполняет заголовок секции
+   */
+  const changeTitle = ({ kitchen, name, price, stars }) => {
+    const restaurantTitle = document.querySelector(".restaurant-title");
+    const restaurantRating = document.querySelector(".rating");
+    const restaurantPrice = document.querySelector(".price");
+    const restaurantCategory = document.querySelector(".category");
 
-/**
- * Функция плучает объект и с помощью Деструктуризации
- * заполняет содержимое карточек в блоке cardsMenu
- */
-const renderItems = (data) => {
-  data.forEach(({ description, id, image, name, price }) => {
-    const card = document.createElement("div");
+    restaurantTitle.textContent = name;
+    restaurantRating.textContent = stars;
+    restaurantPrice.innerHTML = `От ${price} ₽`;
+    restaurantCategory.textContent = kitchen;
+  };
 
-    card.classList.add("card");
+  const addToCart = (cartItem) => {
+    if (cartArray.some((item) => item.id === cartItem.id)) {
+      cartArray.map((item) => {
+        if (item.id === cartItem.id) {
+          item.count++;
+        }
 
-    card.innerHTML = `
+        return item;
+      });
+    } else {
+      cartArray.push(cartItem);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cartArray));
+  };
+
+  /**
+   * Функция плучает объект и с помощью Деструктуризации
+   * заполняет содержимое карточек в блоке cardsMenu
+   */
+  const renderItems = (data) => {
+    data.forEach(({ description, id, image, name, price }) => {
+      const card = document.createElement("div");
+
+      card.classList.add("card");
+
+      card.innerHTML = `
 							<img
                 src="${image}"
                 alt="${name}"
@@ -50,26 +71,32 @@ const renderItems = (data) => {
               </div>
 		`;
 
-    cardsMenu.append(card);
-  });
-};
+      card.querySelector(".button-card-text").addEventListener("click", () => {
+        addToCart({ name, price, id, count: 1 });
+      });
 
-/**
- * Если в localStorage есть объект restaurant,
- * то запрашиваем товары из базы данных и отрисовываем их.
- * Если нету, то воозвращаем пльзователя на главнуб страницу
- */
-if (localStorage.getItem("restaurant")) {
-  const restaurant = JSON.parse(localStorage.getItem("restaurant"));
-
-  changeTitle(restaurant);
-
-  fetch(`./db/${restaurant.products}`)
-    .then((response) => response.json())
-    .then((data) => renderItems(data))
-    .catch((error) => {
-      console.log(error);
+      cardsMenu.append(card);
     });
-} else {
-  window.location.href = "/";
-}
+  };
+
+  /**
+   * Если в localStorage есть объект restaurant,
+   * то запрашиваем товары из базы данных и отрисовываем их.
+   * Если нету, то воозвращаем пльзователя на главнуб страницу
+   */
+  if (localStorage.getItem("restaurant")) {
+    const restaurant = JSON.parse(localStorage.getItem("restaurant"));
+
+    changeTitle(restaurant);
+
+    fetch(`./db/${restaurant.products}`)
+      .then((response) => response.json())
+      .then((data) => renderItems(data))
+      .catch((error) => {
+        console.log(error);
+      });
+  } else {
+    window.location.href = "/";
+  }
+};
+menu();
